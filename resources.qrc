@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/img">
+        <file alias="bold.png">img/bold.png</file>
+        <file alias="italic.png">img/italic.png</file>
+        <file alias="underline.png">img/underline.png</file>
+    </qresource>
+</RCC>

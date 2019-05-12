@@ -1,10 +1,17 @@
-QT += widgets charts
+QT += widgets charts printsupport
 
 SOURCES += \
     main.cpp \
-    trading.cpp \
-    evolutionviewer.cpp
+    evolutionviewer.cpp \
+    texteditor.cpp \
+    devises.cpp \
+    tradingmanager.cpp
 
 HEADERS += \
     evolutionviewer.h \
-    trading.h
+    texteditor.h \
+    tradingmanager.h \
+    devises.h
+
+RESOURCES += \
+    resources.qrc

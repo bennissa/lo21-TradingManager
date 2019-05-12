@@ -1,18 +1,32 @@
 #include "texteditor.h"
 
-TextEditor::~TextEditor(){}
+const QString pathImg = ":/img";
+TextEditor::Handler TextEditor::handler=TextEditor::Handler();
+
 TextEditor::TextEditor(){
     // Init
     this->setFixedSize(400, 900);
     text.setText(QString());
 
-    // Sections
+    // Init sections du menu
     file.setTitle("Fichier");
     edit.setTitle("Edition");
     menu.addMenu(&file);
     menu.addMenu(&edit);
 
-    // Actions Fichier
+    // Init actions
+    setupFileActions();
+    setupEditActions();
+    setupFormatActions();
+
+    // Layout
+    layout.addWidget(&menu);
+    layout.addWidget(&format);
+    layout.addWidget(&text);
+    this->setLayout(&layout);
+}
+
+void TextEditor::setupFileActions(){
     nouv = file.addAction("Nouveau");
     nouv->setShortcut(QKeySequence::New);
     nouv->setStatusTip("Créer un nouveau fichier de notes");
@@ -37,8 +51,10 @@ TextEditor::TextEditor(){
     print->setShortcut(QKeySequence::Print);
     print->setStatusTip("Créer un nouveau fichier de notes");
     connect(print, SIGNAL(triggered()), this, SLOT(actionPrint()));
+    return;
+}
 
-    // Actions Editer
+void TextEditor::setupEditActions(){
     undo = edit.addAction("Précédent");
     undo->setShortcut(QKeySequence::Undo);
     connect(undo, SIGNAL(triggered()), this, SLOT(actionUndo()));
@@ -55,10 +71,35 @@ TextEditor::TextEditor(){
     paste->setShortcut(QKeySequence::Paste);
     connect(paste, SIGNAL(triggered()), this, SLOT(actionPaste()));
 
-    // Layout
-    layout.addWidget(&menu);
-    layout.addWidget(&text);
-    this->setLayout(&layout);
+    // Griser sauvegarde, retour et suivant quand il faut
+    connect((&text)->document(), SIGNAL(modificationChanged(bool)), save, SLOT(setEnabled(bool)));
+    connect(&text, SIGNAL(undoAvailable(bool)), undo, SLOT(setEnabled(bool)));
+    connect(&text, SIGNAL(redoAvailable(bool)), redo, SLOT(setEnabled(bool)));
+    save->setEnabled(text.document()->isModified());
+    undo->setEnabled(text.document()->isUndoAvailable());
+    redo->setEnabled(text.document()->isRedoAvailable());
+    return;
+}
+
+void TextEditor::setupFormatActions(){
+    bold = format.addAction(QIcon(pathImg + "/bold.png"), "Gras");
+    bold->setShortcut(QKeySequence::Bold);
+    bold->setCheckable(true);
+    connect(bold, SIGNAL(triggered()), this, SLOT(actionBold()));
+
+    italic = format.addAction(QIcon(pathImg + "/italic.png"), "Italique");
+    italic->setShortcut(QKeySequence::Italic);
+    italic->setCheckable(true);
+    connect(italic, SIGNAL(triggered()), this, SLOT(actionBold()));
+
+    underline = format.addAction(QIcon(pathImg + "/underline.png"), "Souligné");
+    underline->setShortcut(QKeySequence::Underline);
+    underline->setCheckable(true);
+    connect(underline, SIGNAL(triggered()), this, SLOT(actionBold()));
+
+    // Vérif s'il faut checker un format ou pas quand le curseur change de place
+    connect(&text, SIGNAL(currentCharFormatChanged(const QTextCharFormat&)), this, SLOT(currentCharFormatChanged(const QTextCharFormat&)));
+    return;
 }
 
 void TextEditor::actionNew(){
@@ -81,6 +122,7 @@ void TextEditor::actionNew(){
     }
     current="";
     text.setText("");
+    return;
 }
 
 void TextEditor::actionOpen(){
@@ -103,21 +145,23 @@ void TextEditor::actionOpen(){
     }
     current = QFileDialog::getOpenFileName(this, "Ouvrir ...", "", "Text Files (*.txt)");
     f.setFileName(current);
-    if(f.open(QIODevice::ReadOnly, QIODevice::Text)){
+    if(f.open(QIODevice::ReadOnly | QIODevice::Text)){
         QTextStream contenu(&f);
         text.setText(contenu.readAll());
         f.close();
     }else{
         QMessageBox(QMessageBox::Warning, "Erreur", "Impossible d'ouvrir le fichier : "+f.errorString());
     }
+    return;
 }
 
 void TextEditor::actionSave(){
     if(current!=""){
-        if(f.open(QIODevice::WriteOnly, QIODevice::Text)){
+        if(f.open(QIODevice::WriteOnly | QIODevice::Text)){
             QTextStream contenu(&f);
             contenu << text.toPlainText();
             f.close();
+            text.document()->setModified(false);
         }else{
             QMessageBox(QMessageBox::Warning, "Erreur", "Impossible d'ouvrir le fichier : "+f.errorString());
         }
@@ -138,18 +182,21 @@ void TextEditor::actionSave(){
               return;
         }
     }
+    return;
 }
 
 void TextEditor::actionSaveAs(){
     current = QFileDialog::getSaveFileName(this, "Sauvegarder sous ...", "", "Text Files (*.txt)");
     f.setFileName(current);
-    if(f.open(QIODevice::WriteOnly, QIODevice::Text)){
+    if(f.open(QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream contenu(&f);
         contenu << text.toPlainText();
         f.close();
+        text.document()->setModified(false);
     }else{
         QMessageBox(QMessageBox::Warning, "Erreur", "Impossible d'ouvrir le fichier : "+f.errorString());
     }
+    return;
 }
 
 void TextEditor::actionPrint(){
@@ -164,20 +211,62 @@ void TextEditor::actionPrint(){
         QMessageBox(QMessageBox::Warning, "Erreur", "Imprimante inaccessible");
     }
     delete dlg;
+    return;
 }
 
 void TextEditor::actionUndo(){
     text.undo();
+    return;
 }
 
 void TextEditor::actionRedo(){
-    text.undo();
+    text.redo();
+    return;
 }
 
 void TextEditor::actionCopy(){
     text.copy();
+    return;
 }
 
 void TextEditor::actionPaste(){
     text.paste();
+    return;
+}
+
+void TextEditor::actionBold(){
+    QTextCharFormat fmt;
+    if(bold->isChecked()){
+        fmt.setFontWeight(QFont::Bold);
+    }else{
+        fmt.setFontWeight(QFont::Normal);
+    }
+    changeFormat(fmt);
+    return;
+}
+
+void TextEditor::actionItalic(){
+    QTextCharFormat fmt;
+    fmt.setFontItalic(italic->isChecked());
+    changeFormat(fmt);
+    return;
+}
+
+void TextEditor::actionUnderline(){
+    QTextCharFormat fmt;
+    fmt.setFontUnderline(underline->isChecked());
+    changeFormat(fmt);
+    return;
+}
+
+void TextEditor::changeFormat(const QTextCharFormat &format){
+    QTextCursor cursor = text.textCursor();
+    cursor.mergeCharFormat(format);
+    text.mergeCurrentCharFormat(format);
+}
+
+void TextEditor::fontChanged(const QFont &f){
+    bold->setChecked(f.bold());
+    italic->setChecked(f.italic());
+    underline->setChecked(f.underline());
 }
