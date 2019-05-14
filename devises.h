@@ -59,7 +59,7 @@ class EvolutionCours{
     unsigned int nbMaxCours = 0;
 
     public:
-    EvolutionCours(const PaireDevises& p) :paire(&p) {}
+    EvolutionCours(const PaireDevises* p) :paire(p) {}
     void addCours(double o, double h, double l, double c, const QDate& d);
     ~EvolutionCours();
     EvolutionCours(const EvolutionCours& e);
