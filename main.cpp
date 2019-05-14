@@ -40,7 +40,7 @@ int main(int argc, char * argv[]) {
 
     // Création paire et évolution BTC/USD
     const PaireDevises& BTC_USD=manager.getDManager().getPaireDevises("BTC", "USD");
-    EvolutionCours e(BTC_USD);
+    EvolutionCours e(&BTC_USD);
 
     // Une bougie = Un mois pour bitcoin entre janvier 2017 et août 2018
     e.addCours(4261.48000000,4745.42000000,3400.00000000,4724.89000000,QDate(2017,1,1));
@@ -65,6 +65,7 @@ int main(int argc, char * argv[]) {
     e.addCours(3814.26000000,4140.00000000,3670.69000000,4106.65000000,QDate(2018,8,1));
 
     // Initialisation modules
+    manager.setEvo(&e);
     EvolutionViewer v(e);
 
     // Splitter principal
