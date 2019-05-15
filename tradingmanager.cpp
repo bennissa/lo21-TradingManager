@@ -43,7 +43,11 @@ void Simulation::cancelLastTransaction(){
     }
 }
 
-Simulation* TradingManager::addSimulation(double base, double contrepartie, QDate debut, QDate fin, double broker){
+SimulationAuto::SimulationAuto(QString file, double base, double contrepartie, double b, QString s):Simulation(file, base, contrepartie, b){
+    // Chercher la bonne stratégie
+}
+
+Simulation* TradingManager::addSimulation(double base, double contrepartie, QString file, double broker, bool automatic, QString strat){
     if(nbMaxSim==nbSim){
         Simulation** newtab = new Simulation*[nbMaxSim+5];
         for(unsigned int i=0; i<nbSim;i++) newtab[i]=sim[i];
@@ -52,7 +56,11 @@ Simulation* TradingManager::addSimulation(double base, double contrepartie, QDat
         nbMaxSim+=5;
         delete[] old;
     }
-    return sim[nbSim++] = new Simulation(evolution, base, contrepartie, debut, fin, broker);
+    if(automatic){
+        return sim[nbSim++] = new SimulationAuto(file, base, contrepartie, broker, strat);
+    }else{
+        return sim[nbSim++] = new Simulation(file, base, contrepartie, broker);
+    }
 }
 void TradingManager::closeSimulation(Simulation* s){
     for(unsigned int i=0;i<nbSim;i++){

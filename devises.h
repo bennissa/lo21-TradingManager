@@ -37,17 +37,18 @@ class PaireDevises{
 };
 
 class CoursOHLC{
-    double open = 0, high = 0, low = 0, close = 0;
+    double open = 0, high = 0, low = 0, close = 0, volume = 0;
     QDate date;
 
     public:
     CoursOHLC() {}
-    CoursOHLC(double o, double h, double l, double c, const QDate& d);
+    CoursOHLC(double o, double h, double l, double c, double v, const QDate& d);
     double getOpen() const { return open; }
     double getHigh() const { return high; }
     double getLow() const { return low; }
     double getClose() const { return close; }
-    void setCours(double o, double h, double l, double c);
+    double getVolume() const { return volume; }
+    void setCours(double o, double h, double l, double c, double v);
     QDate getDate() const { return date; }
     void setDate(const QDate& d) { date=d; }
 };

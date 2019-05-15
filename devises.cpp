@@ -18,14 +18,14 @@ QString PaireDevises::toString() const{
     return str;
 }
 
-void CoursOHLC::setCours(double o, double h, double l, double c) {
-    if (o < 0 || h < 0 || l < 0 || c<0 || l>h) throw TradingException("cours OHLC incorrect");
-        open = o; high = h; low = l; close = c;
+void CoursOHLC::setCours(double o, double h, double l, double c, double v=0) {
+    if (o < 0 || h < 0 || l < 0 || c<0 || l>h || v<0) throw TradingException("cours OHLC incorrect");
+        open = o; high = h; low = l; close = c; volume=v;
 }
 
-CoursOHLC::CoursOHLC(double o, double h, double l, double c, const QDate& d):date(d) {
-    if (o < 0 || h < 0 || l < 0 || c<0 || l>h) throw TradingException("cours OHLC incorrect");
-        open = o; high = h; low = l; close = c;
+CoursOHLC::CoursOHLC(double o, double h, double l, double c, double v, const QDate& d):date(d) {
+    if (o < 0 || h < 0 || l < 0 || c<0 || l>h || v<0) throw TradingException("cours OHLC incorrect");
+        open = o; high = h; low = l; close = c; volume=v;
 }
 
 

@@ -55,11 +55,11 @@ void TextEditor::setupFileActions(){
 }
 
 void TextEditor::setupEditActions(){
-    undo = edit.addAction("Précédent");
+    undo = edit.addAction("Annuler");
     undo->setShortcut(QKeySequence::Undo);
     connect(undo, SIGNAL(triggered()), this, SLOT(actionUndo()));
 
-    redo = edit.addAction("Suivant");
+    redo = edit.addAction("Rétablir");
     redo->setShortcut(QKeySequence::Redo);
     connect(redo, SIGNAL(triggered()), this, SLOT(actionRedo()));
 
