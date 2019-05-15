@@ -65,7 +65,6 @@ int main(int argc, char * argv[]) {
     e.addCours(3814.26000000,4140.00000000,3670.69000000,4106.65000000,QDate(2018,8,1));
 
     // Initialisation modules
-    manager.setEvo(&e);
     EvolutionViewer v(e);
 
     // Splitter principal

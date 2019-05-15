@@ -25,15 +25,20 @@ class Transaction{
     CoursOHLC* getCours() const{ return cours; }
 };
 
+class Strategy{
+
+};
+
 class Simulation{
-    EvolutionCours* evolution;
-    bool automatic=false;
+    QString filename;
+    QDate debutFichier, finFichier;
+    EvolutionCours* evolution=nullptr;
+    double broker;
     double soldeBase, soldeContrepartie;
     Transaction** transactions=nullptr;
     unsigned int nbTransactions=0;
     unsigned int nbMaxTransactions=0;
     QDate debut, fin;
-    double broker;
 
     // Constructeur de recopie et opérateur d'affections ? mettre en privé et laisser addSimulation faire le travail ou permettre en les définissant ?
 
@@ -44,25 +49,29 @@ class Simulation{
         }
         delete transactions;
     }
-    Simulation(EvolutionCours* evo, double base, double contrepartie, QDate d, QDate f, double b):evolution(evo),soldeBase(base),soldeContrepartie(contrepartie),debut(d),fin(f),broker(b){}
+    // enlever dates de constructeur
+    Simulation(QString file, double base, double contrepartie, double b):filename(file),soldeBase(base),soldeContrepartie(contrepartie),broker(b){}
     Transaction* addTransaction(double montant, CoursOHLC* c);
     void cancelLastTransaction();
 
-    EvolutionCours* getEvo() const{ return evolution; }
+    EvolutionCours* lireFichier();
     double getSoldeBase() const{ return soldeBase; }
     double getSoldeContrepartie() const{ return soldeContrepartie; }
     double getBroker() const{ return broker; }
     void addToSoldeBase(double montant){ soldeBase+=montant; soldeBase*=(1-broker);  return; }
     void addToSoldeContrepartie(double montant){ soldeContrepartie+=montant; soldeContrepartie*=(1-broker); return; }
+    void run();
+};
+
+class SimulationAuto : public Simulation{
+    Strategy* strat;
+    public:
+    SimulationAuto(QString file, double base, double contrepartie, double b, QString s);
 };
 
 class TradingManager{
     DevisesManager& devisesManager=DevisesManager::getManager();
     TextEditor& textEditor=TextEditor::getEditor();
-    QString filename;
-    QDate debutFichier, finFichier;
-
-    EvolutionCours* evolution=nullptr;
 
     Simulation** sim;
     unsigned int nbSim=0;
@@ -103,16 +112,8 @@ class TradingManager{
 
     DevisesManager& getDManager() const{ return devisesManager; }
     TextEditor& getTEditor() const{ return textEditor; }
-    const EvolutionCours* getEvo() const{ return evolution; }
-    void setEvo(EvolutionCours* evo){
-        if(evolution==nullptr){
-            evolution=evo; return;
-        }else{
-            throw new TradingException("Paire déjà définie");
-        }
-    }
 
-    Simulation* addSimulation(double base, double contrepartie, QDate debut, QDate fin, double broker);
+    Simulation* addSimulation(double base, double contrepartie, QString filename, double broker, bool automatic=false, QString strat=QString());
     void closeSimulation(Simulation* s);
 };
 
